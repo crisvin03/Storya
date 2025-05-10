@@ -54,5 +54,24 @@ You may view the **prototype design** here:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/storya-app.git
+   git clone https://github.com/crisvin03/storya-app.git
    cd storya-app
+
+2. **Install Dependencies**
+   ```bash
+   npm install
+
+ 3. **Set Up Environment Variables**
+     Create a file named .env in the root folder and configure your API base URL or other sensitive keys:
+    ```env
+    API_URL=https://your-api-endpoint.com
+    
+ 4. **Run the App Locally**
+    ```bash
+    npx expo start
+
+**This will open Expo DevTools in your browser.**
+
+**Scan the QR code using the Expo Go app on your Android/iOS phone.**
+
+**Or press a to run on Android emulator, i for iOS (Mac only).**

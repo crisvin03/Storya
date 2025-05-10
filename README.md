@@ -31,6 +31,22 @@ You may view the **prototype design** here:
 - View basic user information and track saved content.
 
 ---
+## 🖼️ App Screenshots uding ExpoGo
+
+<table>
+  <tr>
+    <td align="center"><img src="./assets/Storya1.jpg" width="150"/><br/>Login Screen</td>
+    <td align="center"><img src="./assets/Storya2.jpg" width="150"/><br/>Register Screen</td>
+    <td align="center"><img src="./assets/Storya3.jpg" width="150"/><br/>Home Screen</td>
+    <td align="center"><img src="./assets/Storya4.jpg" width="150"/><br/>Book Details</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="./assets/Storya5.jpg" width="150"/><br/>Chapter List</td>
+    <td align="center"><img src="./assets/Storya6.jpg" width="150"/><br/>Reading View</td>
+    <td align="center"><img src="./assets/Storya7.jpg" width="150"/><br/>Library</td>
+    <td align="center"><img src="./assets/Storya8.jpg" width="150"/><br/>Profile</td>
+  </tr>
+</table>
 
 ## 📦 Setup & Installation
 

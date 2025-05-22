@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 // ✅ TYPE FIX START
@@ -20,12 +20,15 @@ type VerificationScreenNavigationProp = NativeStackNavigationProp<RootStackParam
 // ✅ TYPE FIX END
 
 export default function VerificationScreen() {
-  const navigation = useNavigation<VerificationScreenNavigationProp>(); // ✅ typed
+  const navigation = useNavigation<VerificationScreenNavigationProp>();
+  const route = useRoute();
+  const email = (route.params as { email?: string })?.email || 'no-email@example.com'; // ✅ safe access
+
   const [code, setCode] = useState('');
 
   const handleVerify = () => {
     if (code === '123456') {
-      navigation.navigate('Success'); // ✅ now valid
+      navigation.navigate('Success');
     } else {
       alert('Invalid code. Please try again.');
     }
@@ -46,7 +49,7 @@ export default function VerificationScreen() {
       </Text>
 
       <View style={styles.emailRow}>
-        <Text style={styles.email}>letadal12@example.com</Text>
+        <Text style={styles.email}>{email}</Text>
         <Ionicons name="pencil-outline" size={16} color="#D300FF" style={styles.editIcon} />
       </View>
 

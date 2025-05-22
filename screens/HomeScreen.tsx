@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+
 import {
   View,
   Text,
@@ -12,21 +13,67 @@ import {
   StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../navigation/AppNavigator';
+
+
 
 const books = [
-  require('../assets/b1.jpg'),
-  require('../assets/b2.png'),
-  require('../assets/b3.png'),
-  require('../assets/b4.jpg'),
+  { image: require('../assets/b1.jpg'), title: 'The Lost Princess' },
+  { image: require('../assets/b2.png'), title: 'Fear Games' },
+  { image: require('../assets/b3.png'), title: 'The Taming of Victoria Colton' },
+  { image: require('../assets/b4.jpg'), title: 'The End of the Beginning' },
 ];
-  const romanceBooks = [
-    require('../assets/b5.jpg'),
-    require('../assets/b6.png'),
-    require('../assets/b7.jpg'),
-    require('../assets/b8.jpg'),
-  ];
+const romanceBooks = [
+  { image: require('../assets/b5.jpg'), title: 'The Four Badboys and Me' },
+  { image: require('../assets/b6.png'), title: 'One Step To the Heart' },
+  { image: require('../assets/b7.jpg'), title: 'Witch' },
+  { image: require('../assets/b8.jpg'), title: 'Torn' },
+];
+const fantasyBooks = [
+  { image: require('../assets/b9.jpg'), title: 'Full Grind Mode' },
+  { image: require('../assets/b10.jpg'), title: 'The Villaines' },
+  { image: require('../assets/b11.jpg'), title: 'Another Life, Another Me' },
+  { image: require('../assets/b12.jpg'), title: 'Witches' },
+];
+const thrillerBooks = [
+  { image: require('../assets/b13.jpg'), title: 'Dr Jekyll and Mr Hyde' },
+  { image: require('../assets/b14.jpg'), title: 'Creepypasta' },
+  { image: require('../assets/b15.jpg'), title: 'A Brilliant Plan' },
+  { image: require('../assets/b16.jpg'), title: 'Distantly Falling Stars' },
+];
+const sciFiBooks = [
+  { image: require('../assets/b17.jpg'), title: 'Wisdom of the Ancients' },
+  { image: require('../assets/b18.jpg'), title: 'DSpayr' },
+  { image: require('../assets/b19.jpg'), title: 'The Lost City Of Atlantis' },
+  { image: require('../assets/b20.jpg'), title: 'Echoes of the Past' },
+];
 
 export default function HomeScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchText, setSearchText] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  const allTitles = [
+    ...books,
+    ...romanceBooks,
+    ...fantasyBooks,
+    ...thrillerBooks,
+    ...sciFiBooks,
+  ].map((b) => b.title);
+
+  const handleSearch = (text: string) => {
+  const input = text.toLowerCase();
+  const matched = allTitles.filter((title) =>
+    title.toLowerCase().startsWith(input)
+  );
+
+  setSuggestions(matched.length > 0 ? matched.slice(0, 5) : ['__NO_RESULTS__']);
+};
+
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#82328C" />
@@ -40,23 +87,63 @@ export default function HomeScreen() {
               style={styles.searchInput}
               placeholder="Search stories or reading lists"
               placeholderTextColor="#ccc"
+              value={searchText}
+              onChangeText={(text) => {
+              setSearchText(text);
+              if (text.trim().length > 0) handleSearch(text); // even 1 letter triggers search
+              else setSuggestions([]);
+              }}
+
             />
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => { setSearchText(''); setSuggestions([]); }}>
               <Ionicons name="close" size={18} color="#ccc" />
             </TouchableOpacity>
           </View>
         </View>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        >
+        {/* Search Suggestions */}
+        {searchText.trim() !== '' && (
+  <View style={styles.suggestionsBox}>
+    {suggestions[0] === '__NO_RESULTS__' ? (
+      <Text style={styles.suggestionItem}>No results found.</Text>
+    ) : (
+      suggestions.map((title, idx) => {
+        // Find the full book object that matches the title
+        const allBooks = [...books, ...romanceBooks, ...fantasyBooks, ...thrillerBooks, ...sciFiBooks];
+        const selectedBook = allBooks.find(b => b.title === title);
+
+        return (
+          <TouchableOpacity
+            key={idx}
+            onPress={() => {
+              if (selectedBook) {
+                navigation.navigate('BookDetail', { book: selectedBook });
+                setSearchText('');
+                setSuggestions([]);
+              }
+            }}
+          >
+            <Text style={styles.suggestionItem}>{title}</Text>
+          </TouchableOpacity>
+        );
+      })
+    )}
+  </View>
+)}
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
           {/* Categories */}
           <View style={styles.categories}>
             {['All', 'Romance', 'Fantasy', 'Thriller', 'Sci-Fi'].map((cat) => (
-              <Text key={cat} style={styles.categoryText}>
-                {cat}
-              </Text>
+              <TouchableOpacity key={cat} onPress={() => setSelectedCategory(cat)}>
+                <Text
+                  style={[
+                    styles.categoryText,
+                    selectedCategory === cat && { fontWeight: 'bold', textDecorationLine: 'underline' },
+                  ]}
+                >
+                  {cat}
+                </Text>
+              </TouchableOpacity>
             ))}
           </View>
 
@@ -65,12 +152,19 @@ export default function HomeScreen() {
           <FlatList
             horizontal
             data={books}
-            renderItem={({ item }) => <Image source={item} style={styles.bookImage} />}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => navigation.navigate('BookDetail', { book: item })}>
+              <View style={styles.bookItem}>
+                <Image source={item.image} style={styles.bookImage} />
+                <Text style={styles.bookTitle}>{item.title}</Text>
+              </View>
+              </TouchableOpacity>
+            )}
             keyExtractor={(_, index) => index.toString()}
             showsHorizontalScrollIndicator={false}
           />
 
-          {/* Featured Story with Ellipsis */}
+          {/* Featured Story */}
           <View style={styles.storyHeader}>
             <View>
               <Text style={styles.storyTitle}>The Lost Princess</Text>
@@ -92,42 +186,102 @@ export default function HomeScreen() {
           <FlatList
             horizontal
             data={books}
-            renderItem={({ item }) => <Image source={item} style={styles.bookImage} />}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => navigation.navigate('BookDetail', { book: item })}>
+              <View style={styles.bookItem}>
+                <Image source={item.image} style={styles.bookImage} />
+                <Text style={styles.bookTitle}>{item.title}</Text>
+              </View>
+              </TouchableOpacity>
+            )}
             keyExtractor={(_, index) => 'pop' + index.toString()}
             showsHorizontalScrollIndicator={false}
           />
 
-         {/* Romance Section */}
-        <Text style={styles.sectionTitle}>Romance</Text>
-        <FlatList
-        horizontal
-        data={romanceBooks}
-        renderItem={({ item }) => <Image source={item} style={styles.bookImage} />}
-        keyExtractor={(_, index) => 'romance' + index.toString()}
-       showsHorizontalScrollIndicator={false}
-         />
+          {/* Romance Section */}
+          {selectedCategory === 'All' || selectedCategory === 'Romance' ? (
+            <>
+              <Text style={styles.sectionTitle}>Romance</Text>
+              <FlatList
+                horizontal
+                data={romanceBooks}
+                renderItem={({ item }) => (
+                      <TouchableOpacity onPress={() => navigation.navigate('BookDetail', { book: item })}>
+                  <View style={styles.bookItem}>
+                    <Image source={item.image} style={styles.bookImage} />
+                    <Text style={styles.bookTitle}>{item.title}</Text>
+                  </View>
+                    </TouchableOpacity>
+                )}
+                keyExtractor={(_, index) => 'romance' + index.toString()}
+                showsHorizontalScrollIndicator={false}
+              />
+            </>
+          ) : null}
 
+          {/* Fantasy Section */}
+          {selectedCategory === 'All' || selectedCategory === 'Fantasy' ? (
+            <>
+              <Text style={styles.sectionTitle}>Fantasy</Text>
+              <FlatList
+                horizontal
+                data={fantasyBooks}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => navigation.navigate('BookDetail', { book: item })}>
+                  <View style={styles.bookItem}>
+                    <Image source={item.image} style={styles.bookImage} />
+                    <Text style={styles.bookTitle}>{item.title}</Text>
+                  </View>
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(_, index) => 'fantasy' + index.toString()}
+                showsHorizontalScrollIndicator={false}
+              />
+            </>
+          ) : null}
+
+          {/* Thriller Section */}
+          {selectedCategory === 'All' || selectedCategory === 'Thriller' ? (
+            <>
+              <Text style={styles.sectionTitle}>Thriller</Text>
+              <FlatList
+                horizontal
+                data={thrillerBooks}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => navigation.navigate('BookDetail', { book: item })}>
+                  <View style={styles.bookItem}>
+                    <Image source={item.image} style={styles.bookImage} />
+                    <Text style={styles.bookTitle}>{item.title}</Text>
+                  </View>
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(_, index) => 'thriller' + index.toString()}
+                showsHorizontalScrollIndicator={false}
+              />
+            </>
+          ) : null}
+
+          {/* Sci-Fi Section */}
+          {selectedCategory === 'All' || selectedCategory === 'Sci-Fi' ? (
+            <>
+              <Text style={styles.sectionTitle}>Sci-Fi</Text>
+              <FlatList
+                horizontal
+                data={sciFiBooks}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => navigation.navigate('BookDetail', { book: item })}>
+                  <View style={styles.bookItem}>
+                    <Image source={item.image} style={styles.bookImage} />
+                    <Text style={styles.bookTitle}>{item.title}</Text>
+                  </View>
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(_, index) => 'sci-fi' + index.toString()}
+                showsHorizontalScrollIndicator={false}
+              />
+            </>
+          ) : null}
         </ScrollView>
-
-        {/* Bottom navigation with label */}
-        <View style={styles.bottomNav}>
-          <View style={styles.navItem}>
-            <Ionicons name="home" size={22} color="#D300FF" />
-            <Text style={[styles.navText, { color: '#D300FF' }]}>Home</Text>
-          </View>
-          <View style={styles.navItem}>
-            <Ionicons name="pencil-outline" size={22} color="#000" />
-            <Text style={styles.navText}>Write</Text>
-          </View>
-          <View style={styles.navItem}>
-            <Ionicons name="book-outline" size={22} color="#000" />
-            <Text style={styles.navText}>Library</Text>
-          </View>
-          <View style={styles.navItem}>
-            <Ionicons name="person-outline" size={22} color="#000" />
-            <Text style={styles.navText}>Profile</Text>
-          </View>
-        </View>
       </View>
     </SafeAreaView>
   );
@@ -170,6 +324,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     paddingVertical: 6,
   },
+  suggestionsBox: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: -8,
+    marginBottom: 8,
+  },
+  suggestionItem: {
+    fontSize: 14,
+    paddingVertical: 4,
+    color: '#333',
+  },
   categories: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -188,12 +354,22 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
+  bookItem: {
+    alignItems: 'center',
+    marginRight: 12,
+  },
   bookImage: {
     width: 80,
     height: 120,
     resizeMode: 'cover',
-    marginRight: 10,
     borderRadius: 4,
+  },
+  bookTitle: {
+    color: '#fff',
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center',
+    width: 80,
   },
   storyHeader: {
     flexDirection: 'row',

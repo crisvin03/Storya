@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,13 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
+  TextInput,
+  Alert,
+  ActionSheetIOS,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
@@ -17,44 +21,159 @@ type Props = NativeStackScreenProps<RootStackParamList, 'BookDetail'>;
 export default function BookDetailScreen({ route, navigation }: Props) {
   const { book } = route.params;
 
+  const [searchText, setSearchText] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  const allBooks = [
+    { image: require('../assets/b1.jpg'), title: 'The Lost Princess' },
+    { image: require('../assets/b2.png'), title: 'Fear Games' },
+    { image: require('../assets/b3.png'), title: 'The Taming of Victoria Colton' },
+    { image: require('../assets/b4.jpg'), title: 'The End of the Beginning' },
+    { image: require('../assets/b5.jpg'), title: 'The Four Badboys and Me' },
+  ];
+
+  const allTitles = allBooks.map((b) => b.title);
+
+  const handleSearch = (text: string) => {
+    setSearchText(text);
+    const matched = allTitles.filter((title) =>
+      title.toLowerCase().startsWith(text.toLowerCase())
+    );
+    setSuggestions(matched.length > 0 ? matched : ['__NO_RESULTS__']);
+  };
+
+  const handleSelectSuggestion = (title: string) => {
+    const selected = allBooks.find((b) => b.title === title);
+    if (selected) {
+      navigation.replace('BookDetail', { book: selected });
+      setSearchText('');
+      setSuggestions([]);
+    }
+  };
+
+  const showOptions = () => {
+    const save = async () => {
+      try {
+        const existing = await AsyncStorage.getItem('readingList');
+        const readingList = existing ? JSON.parse(existing) : [];
+
+        const alreadyExists = readingList.some((b: any) => b.title === book.title);
+        if (alreadyExists) {
+          Alert.alert('Already Saved', 'This story is already in your Reading List.');
+          return;
+        }
+
+        readingList.push(book);
+        await AsyncStorage.setItem('readingList', JSON.stringify(readingList));
+        Alert.alert('Saved!', 'Story added to your Reading List.');
+      } catch (err) {
+        console.error('Save failed:', err);
+        Alert.alert('Error', 'Something went wrong while saving.');
+      }
+    };
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Save to Reading List'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) save();
+        }
+      );
+    } else {
+      Alert.alert(
+        'Options',
+        'What would you like to do?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Save to Reading List', onPress: save },
+        ]
+      );
+    }
+  };
+
+  const handleStartReading = async () => {
+    try {
+      const existing = await AsyncStorage.getItem('currentReads');
+      const currentReads = existing ? JSON.parse(existing) : [];
+
+      const alreadyExists = currentReads.some((b: any) => b.title === book.title);
+      if (!alreadyExists) {
+        currentReads.push(book);
+        await AsyncStorage.setItem('currentReads', JSON.stringify(currentReads));
+      }
+
+      navigation.navigate('BookParts', { book });
+    } catch (error) {
+      console.error('Failed to save current read:', error);
+      navigation.navigate('BookParts', { book }); // still navigate
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header / Search Bar */}
-      <View style={styles.searchBar}>
+      {/* Header */}
+      <View style={styles.header}>
         <Image source={require('../assets/storya.png')} style={styles.logo} />
-        <Text style={styles.searchText}>{String(book.title ?? 'Untitled')}</Text>
-        <Ionicons name="close" size={18} color="#fff" />
-      </View>
-
-      {/* Book Info */}
-      <View style={styles.content}>
-        <Image source={book.image} style={styles.cover} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.title}>{String(book.title ?? 'Untitled')}</Text>
-
-          {/* ✅ Use View for icon + text combo */}
-          <View style={styles.iconRow}>
-            <Ionicons name="reader-outline" size={14} color="#ccc" />
-            <Text style={styles.parts}>5 Parts</Text>
-          </View>
-
-          <Ionicons
-            name="ellipsis-vertical"
-            size={20}
-            color="#fff"
-            style={{ position: 'absolute', top: 0, right: 0 }}
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={16} color="#ccc" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search stories, people or reading lists"
+            placeholderTextColor="#ccc"
+            value={searchText}
+            onChangeText={handleSearch}
           />
-          <Text style={styles.description}>
-            {book.description ??
-              'This is a sample description for the selected book. You can add actual summaries later.'}
-          </Text>
+          {searchText.length > 0 && (
+            <TouchableOpacity onPress={() => { setSearchText(''); setSuggestions([]); }}>
+              <Ionicons name="close" size={16} color="#ccc" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
+
+      {/* Suggestions */}
+      {searchText.trim() !== '' && (
+        <View style={styles.suggestionsBox}>
+          {suggestions[0] === '__NO_RESULTS__' ? (
+            <Text style={styles.suggestionItem}>No results found.</Text>
+          ) : (
+            suggestions.map((title, idx) => (
+              <TouchableOpacity key={idx} onPress={() => handleSelectSuggestion(title)}>
+                <Text style={styles.suggestionItem}>{title}</Text>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
+      )}
+
+      {/* Book Card */}
+      <View style={styles.bookCard}>
+        <Image source={book.image} style={styles.cover} />
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={styles.bookTitle}>{book.title}</Text>
+          <View style={styles.metaRow}>
+            <Ionicons name="reader-outline" size={14} color="#ccc" />
+            <Text style={styles.parts}>5 Parts</Text>
+            <TouchableOpacity onPress={showOptions} style={{ marginLeft: 'auto' }}>
+              <Ionicons name="ellipsis-vertical" size={16} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      {/* Description */}
+      <Text style={styles.description}>
+        {book.description ??
+          'Joshua turn to get a closer view of, his stepmother? Can he even call her that she was younger than him! She was staring at him like he was a monster. With those big brown eyes. Halley was shock to the spine. The man standing in front of her was so...'}
+      </Text>
 
       {/* Read Button */}
       <TouchableOpacity
         style={styles.readButton}
-        onPress={() => navigation.navigate('BookParts', { book })}
+        onPress={handleStartReading}
       >
         <Text style={styles.readText}>Read</Text>
       </TouchableOpacity>
@@ -68,43 +187,62 @@ const styles = StyleSheet.create({
     backgroundColor: '#82328C',
     padding: 16,
   },
-  searchBar: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
-    justifyContent: 'space-between',
+    gap: 12,
   },
   logo: {
-    width: 32,
-    height: 32,
+    width: 30,
+    height: 30,
   },
-  searchText: {
-    color: '#fff',
-    fontSize: 14,
-    flex: 1,
-    marginLeft: 12,
-  },
-  content: {
+  searchBox: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 16,
+    backgroundColor: '#9A4DA4',
+    flex: 1,
+    paddingHorizontal: 14,
+    borderRadius: 30,
+    alignItems: 'center',
+    height: 44,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#fff',
+    paddingVertical: 6,
+  },
+  suggestionsBox: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+  },
+  suggestionItem: {
+    fontSize: 14,
+    paddingVertical: 6,
+    color: '#333',
+  },
+  bookCard: {
+    flexDirection: 'row',
+    marginBottom: 18,
+    alignItems: 'flex-start',
   },
   cover: {
     width: 90,
     height: 130,
-    borderRadius: 6,
+    borderRadius: 4,
   },
-  title: {
+  bookTitle: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 6,
   },
-  iconRow: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    gap: 4,
+    gap: 6,
   },
   parts: {
     color: '#ccc',
@@ -113,7 +251,8 @@ const styles = StyleSheet.create({
   description: {
     color: '#fff',
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 20,
+    marginBottom: 60,
   },
   readButton: {
     backgroundColor: '#D300FF',

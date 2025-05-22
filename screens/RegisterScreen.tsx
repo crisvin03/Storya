@@ -11,6 +11,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useUser } from '../context/UserContext'; // ✅ added for user state
+
 // ✅ TYPE FIX START
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -19,15 +21,41 @@ type RegisterScreenNavigationProp = NativeStackNavigationProp<RootStackParamList
 // ✅ TYPE FIX END
 
 export default function RegisterScreen() {
-  const navigation = useNavigation<RegisterScreenNavigationProp>(); // ✅ typed
+  const navigation = useNavigation<RegisterScreenNavigationProp>();
+  const { setUser } = useUser(); // ✅ context for saving user info
 
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const validateInputs = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Please enter a valid email.';
+    }
+    if (!name.trim()) {
+      newErrors.name = 'Name is required.';
+    }
+    if (!username.trim()) {
+      newErrors.username = 'Username is required.';
+    }
+    if (!password || password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleRegister = () => {
-    navigation.navigate('Verification'); // ✅ no more 'never' error
+    if (validateInputs()) {
+      setUser({ name, email, username, password });  // ✅ Save user info globally
+      navigation.navigate('Verification', { email }); // ✅ Continue to verification
+    }
   };
 
   return (
@@ -51,9 +79,15 @@ export default function RegisterScreen() {
           placeholderTextColor="#BFBFBF"
           keyboardType="email-address"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text);
+            if (/\S+@\S+\.\S+/.test(text)) {
+              setErrors((prev) => ({ ...prev, email: '' }));
+            }
+          }}
         />
       </View>
+      {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
       {/* Name */}
       <Text style={styles.label}>Name</Text>
@@ -61,12 +95,18 @@ export default function RegisterScreen() {
         <Ionicons name="person-outline" size={18} color="#D300FF" style={styles.icon} />
         <TextInput
           style={styles.input}
-          placeholder="Ex: Dan Letada"
+          placeholder="Ex: Juan Tamad"
           placeholderTextColor="#BFBFBF"
           value={name}
-          onChangeText={setName}
+          onChangeText={(text) => {
+            setName(text);
+            if (text.trim() !== '') {
+              setErrors((prev) => ({ ...prev, name: '' }));
+            }
+          }}
         />
       </View>
+      {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
 
       {/* Username */}
       <Text style={styles.label}>Username</Text>
@@ -74,12 +114,18 @@ export default function RegisterScreen() {
         <Ionicons name="at-outline" size={18} color="#D300FF" style={styles.icon} />
         <TextInput
           style={styles.input}
-          placeholder="Ex: DanLetada"
+          placeholder="Ex: JuanTamad"
           placeholderTextColor="#BFBFBF"
           value={username}
-          onChangeText={setUsername}
+          onChangeText={(text) => {
+            setUsername(text);
+            if (text.trim() !== '') {
+              setErrors((prev) => ({ ...prev, username: '' }));
+            }
+          }}
         />
       </View>
+      {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
 
       {/* Password */}
       <Text style={styles.label}>Password</Text>
@@ -91,9 +137,15 @@ export default function RegisterScreen() {
           placeholderTextColor="#BFBFBF"
           secureTextEntry
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (text.length >= 6) {
+              setErrors((prev) => ({ ...prev, password: '' }));
+            }
+          }}
         />
       </View>
+      {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
       {/* Register Button */}
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
@@ -182,5 +234,11 @@ const styles = StyleSheet.create({
   loginLink: {
     color: '#D300FF',
     fontWeight: 'bold',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 13,
+    marginBottom: 8,
+    marginLeft: 4,
   },
 });

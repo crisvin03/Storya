@@ -3,7 +3,7 @@ import React, { JSX } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../navigation/AppNavigator'; // 👈 make sure this path is correct
+import type { RootStackParamList } from '../navigation/AppNavigator'; 
 
 // 👇 Define the type for navigation specific to this screen
 type StartScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Start'>;

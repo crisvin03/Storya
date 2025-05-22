@@ -7,30 +7,35 @@ import {
   StyleSheet,
   Image,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useUser } from '../context/UserContext'; // ✅ import user context
 
-// ✅ TYPE FIX START
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
-// ✅ TYPE FIX END
 
 export default function LoginScreen() {
-  const navigation = useNavigation<LoginScreenNavigationProp>(); // ✅ typed navigation
+  const navigation = useNavigation<LoginScreenNavigationProp>();
+  const { user } = useUser(); // ✅ get registered user
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
 
   const handleLogin = () => {
-    navigation.navigate('Home');
+    if (user && user.email === email && user.password === password) {
+      navigation.navigate('MainTabs'); // ✅ or 'Home' if you’re using Stack.Navigator
+    } else {
+      Alert.alert('Login Failed', 'Credentials are not correct'); // ✅ show error
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Logo stays fixed on top-left */}
       <View style={styles.logoWrapper}>
         <Image source={require('../assets/storya.png')} style={styles.logo} />
       </View>
@@ -77,7 +82,7 @@ export default function LoginScreen() {
             <Text style={styles.rememberText}>Remember me</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-            <Text style={styles.forgotText}>Forgot Password ?</Text>
+            <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
         </View>
 

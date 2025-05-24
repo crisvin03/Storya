@@ -167,7 +167,7 @@ export default function BookDetailScreen({ route, navigation }: Props) {
       {/* Description */}
       <Text style={styles.description}>
         {book.description ??
-          'Joshua turn to get a closer view of, his stepmother? Can he even call her that she was younger than him! She was staring at him like he was a monster. With those big brown eyes. Halley was shock to the spine. The man standing in front of her was so...'}
+          'Lorem ipsum dolor sit amet. Ut reiciendis vero vel dolores nisi At placeat eius. Et omnis internos et culpa inventore in facere sapiente et quae accusamus id mollitia consequatur sit excepturi voluptatem ut repudiandae sequi. Eos explicabo itaque id atque rerum ut esse facere id optio fuga vel blanditiis voluptatem in Quis repellendus.'}
       </Text>
 
       {/* Read Button */}

@@ -176,9 +176,9 @@ export default function HomeScreen() {
           </View>
 
           <Text style={styles.storyDescription}>
-            Joshua turn to get a closer view of, his stepmother? Can he even call her that she was younger than him!
-            She was staring at him like he was a monster. With those big brown eyes. Halley was shock to the spine.
-            The man standing in front of her was so....
+            Lorem ipsum dolor sit amet. Qui veritatis sapiente a sint nesciunt et minus possimus ea temporibus nesciunt. Ut saepe placeat hic quas maxime est delectus error qui consectetur error aut vitae rerum. Ex omnis ipsum et unde molestias est exercitationem blanditiis.
+Et accusamus mollitia sit consequuntur nisi 33 incidunt magni et aspernatur quod est odit consequatur. A ullam asperiores eum nulla ducimus qui culpa pariatur? Qui iusto laborum ut magni suscipit ut dolorem libero aut dolores tenetur est animi architecto sed temporibus perspiciatis et quasi consequatur.
+Aut tempora adipisci rem sunt dicta non obcaecati explicabo aut quos quia qui eaque esse sed facilis corporis. Ut facere earum et laborum asperiores 33 voluptate fugiat id quam nemo et dignissimos laudantium.
           </Text>
 
           {/* Popular Now */}

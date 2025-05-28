@@ -13,7 +13,7 @@ You may view the **prototype design** here:
 
 ### 🔐 Authentication
 - **Register**: Users can sign up using name, email, and password.
-- **Email Verification**: A 6-digit code is sent to users to verify their account.
+- **Email Verification**: A 6-digit code is sent to users to verify their account (Default pin 123456).
 - **Login**: Access with email and password.
 - **Forgot Password**: Password reset via email verification and custom password entry.
 

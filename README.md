@@ -2,7 +2,7 @@
 
 **Storya** is a mobile application designed to let users explore, read, and manage novels in an intuitive and engaging way. With a clean onboarding flow and personalized library features, Storya brings storytelling to the fingertips of every user.
 
-> **🚧 NOTE: This project is currently 60% complete and under active development.**
+> **🚧 NOTE: The default pin for email verification is 123456**
 
 You may view the **prototype design** here:  
 🔗 [Storya Figma Prototype](https://www.figma.com/design/Fqb4S8PGmcxPx1CvbdIJlD/Storya-Prototype?m=dev&t=o6T3wc8pw79iV7Zj-1)
